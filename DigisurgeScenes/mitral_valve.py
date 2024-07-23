@@ -42,6 +42,7 @@ def createScene(root):
     'Sofa.Component.SolidMechanics.FEM.Elastic',
     'Sofa.Component.StateContainer',
     'Sofa.Component.Topology.Container.Dynamic',
+    'Sofa.Component.Engine.Select',
     'Sofa.Component.Visual',
     'Sofa.GL.Component.Rendering3D'
     ])
@@ -55,27 +56,29 @@ def createScene(root):
     root.addObject('DefaultContactManager', name="CollisionResponse", response="PenalityContactForceField")
     root.addObject('DiscreteIntersection')
 
-    root.addObject('MeshOBJLoader', name="LiverSurface", filename="mesh/liver-smooth.obj")
+    root.addObject('MeshOBJLoader', name="HeartSurface", filename="mesh/segmentation_simplified_tet_msh__sf.obj")
 
-    liver = root.addChild('Liver')
-    liver.addObject('EulerImplicitSolver', name="cg_odesolver", rayleighStiffness="0.1", rayleighMass="0.1")
-    liver.addObject('CGLinearSolver', name="linear_solver", iterations="25", tolerance="1e-09", threshold="1e-09")
-    liver.addObject('MeshGmshLoader', name="meshLoader", filename="mesh/liver.msh")
-    liver.addObject('TetrahedronSetTopologyContainer', name="topo", src="@meshLoader")
-    liver.addObject('MechanicalObject', name="dofs", src="@meshLoader")
-    liver.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
-    liver.addObject('DiagonalMass', name="Mass", massDensity="1.0")
-    liver.addObject('TetrahedralCorotationalFEMForceField', template="Vec3d", name="FEM", method="large", poissonRatio="0.3", youngModulus="3000", computeGlobalMatrix="0")
-    liver.addObject('FixedConstraint', name="FixedConstraint", indices="3 39 64")
+    heart = root.addChild('Heart')
+    heart.addObject('EulerImplicitSolver', name="cg_odesolver", rayleighStiffness="0.1", rayleighMass="0.1")
+    heart.addObject('CGLinearSolver', name="linear_solver", iterations="100", tolerance="1e-09", threshold="1e-09")
+    heart.addObject('MeshGmshLoader', name="meshLoader", filename="mesh/segmentation_simplified_tet_gmsh.msh")
+    heart.addObject('TetrahedronSetTopologyContainer', name="topo", src="@meshLoader")
+    heart.addObject('MechanicalObject', name="dofs", src="@meshLoader")
+    heart.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
+    heart.addObject('DiagonalMass', name="Mass", massDensity="1.0")
+    heart.addObject('TetrahedralCorotationalFEMForceField', template="Vec3d", name="FEM", method="large", poissonRatio="0.45", youngModulus="3e4", computeGlobalMatrix="0")
+    heart.addObject('BoxROI', template="Vec3d", name="FixationBoxROI", box="-10.0 -10.0 -10.0 10.0 10.0 10.0", drawBoxes="true")
+    heart.addObject('FixedConstraint', name="FixedConstraint", indices="@FixationBoxROI.indices")
 
-    visu = liver.addChild('Visu')
-    visu.addObject('OglModel', name="VisualModel", src="@../../LiverSurface")
+    visu = heart.addChild('Visu')
+    visu.addObject('OglModel', name="VisualModel", src="@../../HeartSurface")
     visu.addObject('BarycentricMapping', name="VisualMapping", input="@../dofs", output="@VisualModel")
 
-    surf = liver.addChild('Surf')
-    surf.addObject('SphereLoader', name="sphereLoader", filename="mesh/liver.sph")
-    surf.addObject('MechanicalObject', name="spheres", position="@sphereLoader.position")
-    surf.addObject('SphereCollisionModel', name="CollisionModel", listRadius="@sphereLoader.listRadius")
+    surf = heart.addChild('Surf')
+    # surf.addObject('SphereLoader', name="sphereLoader", filename="mesh/liver.sph")
+    surf.addObject('MechanicalObject', name="spheres", position="@../../HeartSurface.position")
+    surf.addObject('SphereCollisionModel', name="CollisionModel", radius="1.0")
+    # surf.addObject('SphereCollisionModel', name="CollisionModel", listRadius="@sphereLoader.listRadius")
     surf.addObject('BarycentricMapping', name="CollisionMapping", input="@../dofs", output="@spheres")
 
     return root
