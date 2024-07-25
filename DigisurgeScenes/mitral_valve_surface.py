@@ -39,7 +39,9 @@ def createScene(root):
     'Sofa.Component.Mapping.Linear',
     'Sofa.Component.Mass',
     'Sofa.Component.ODESolver.Backward',
+    'Sofa.Component.SolidMechanics.Spring',
     'Sofa.Component.SolidMechanics.FEM.Elastic',
+    'Sofa.Component.MechanicalLoad',
     'Sofa.Component.StateContainer',
     'Sofa.Component.Topology.Container.Dynamic',
     'Sofa.Component.Engine.Select',
@@ -49,37 +51,36 @@ def createScene(root):
 
     root.addObject('DefaultAnimationLoop')
 
-    root.addObject('VisualStyle', displayFlags="showCollisionModels")
+    root.addObject('VisualStyle', displayFlags="hideCollisionModels")
     root.addObject('CollisionPipeline', name="CollisionPipeline")
     root.addObject('BruteForceBroadPhase', name="BroadPhase")
     root.addObject('BVHNarrowPhase', name="NarrowPhase")
     root.addObject('DefaultContactManager', name="CollisionResponse", response="PenalityContactForceField")
     root.addObject('DiscreteIntersection')
 
-    root.addObject('MeshOBJLoader', name="HeartSurface", filename="mesh/mitral_valve_extruded_msh__sf.obj")
+    root.addObject('MeshOBJLoader', name="MitralValveMesh", filename="mesh/mitral_valve_surface.obj")
 
-    heart = root.addChild('Heart')
-    heart.addObject('EulerImplicitSolver', name="cg_odesolver", rayleighStiffness="0.1", rayleighMass="0.1")
-    heart.addObject('CGLinearSolver', name="linear_solver", iterations="25", tolerance="1e-09", threshold="1e-09")
-    heart.addObject('MeshGmshLoader', name="meshLoader", filename="mesh/mitral_valve_extruded_ascii.msh")
-    heart.addObject('TetrahedronSetTopologyContainer', name="topo", src="@meshLoader")
-    heart.addObject('MechanicalObject', name="dofs", src="@meshLoader")
-    heart.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
-    heart.addObject('DiagonalMass', name="Mass", massDensity="1.0")
-    heart.addObject('TetrahedralCorotationalFEMForceField', template="Vec3d", name="FEM", method="large", poissonRatio="0.3", youngModulus="3000", computeGlobalMatrix="0")
-    heart.addObject('SphereROI', template="Vec3d", name="FixationROI", centers="10 0 60", radii="18", drawSphere="true")
-    # heart.addObject('BoxROI', template="Vec3d", name="FixationBoxROI", box="-10.0 -10.0 -10.0 10.0 10.0 10.0", drawBoxes="true")
-    heart.addObject('FixedConstraint', name="FixedConstraint", indices="@FixationROI.indicesOut")
+    valve = root.addChild('Mitral_Valve')
+    valve.addObject('EulerImplicitSolver', name="cg_odesolver", rayleighStiffness="0.005", rayleighMass="0.005")
+    valve.addObject('CGLinearSolver', name="linear_solver", iterations="25", tolerance="1e-09", threshold="1e-09")
+    valve.addObject('TriangleSetTopologyContainer', name="topo", src="@../MitralValveMesh")
+    valve.addObject('MechanicalObject', name="dofs", src="@../MitralValveMesh")
+    valve.addObject('TriangleSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
+    valve.addObject('DiagonalMass', name="Mass", massDensity="1.0")
+    valve.addObject('TriangularFEMForceFieldOptim', template="Vec3d", name="FEM", poissonRatio="0.3", youngModulus="300000")
+    valve.addObject('FastTriangularBendingSprings', template="Vec3d", name="BendingFF", bendingStiffness="1000")
+    valve.addObject('SphereROI', template="Vec3d", name="FixationROI", centers="0 0 0", radii="18", drawSphere="true")
+    valve.addObject('RestShapeSpringsForceField', name="RestShapeSpringFF", points="@FixationROI.indicesOut", stiffness="1000")
+    valve.addObject('SurfacePressureForceField', name="SurfacePressureFF", pressure="1000", pulseMode="true", pressureSpeed="10", mainDirection="0 1 0")
+    valve.addObject('StiffSpringForceField', name="SpringPressureFF", stiffness="1000000", indices1="1582 1581 1580 1579 1578", indices2="802 803 764 765 766", lengths="0 0 0 0 0")
 
-    visu = heart.addChild('Visu')
-    visu.addObject('OglModel', name="VisualModel", src="@../../HeartSurface")
+    visu = valve.addChild('Visu')
+    visu.addObject('OglModel', name="VisualModel", src="@../../MitralValveMesh")
     visu.addObject('BarycentricMapping', name="VisualMapping", input="@../dofs", output="@VisualModel")
 
-    surf = heart.addChild('Surf')
-    # surf.addObject('SphereLoader', name="sphereLoader", filename="mesh/liver.sph")
-    surf.addObject('MechanicalObject', name="spheres", position="@../../HeartSurface.position")
+    surf = valve.addChild('Surf')
+    surf.addObject('MechanicalObject', name="spheres", position="@../../MitralValveMesh.position")
     surf.addObject('SphereCollisionModel', name="CollisionModel", radius="1.0")
-    # surf.addObject('SphereCollisionModel', name="CollisionModel", listRadius="@sphereLoader.listRadius")
     surf.addObject('BarycentricMapping', name="CollisionMapping", input="@../dofs", output="@spheres")
 
     return root
