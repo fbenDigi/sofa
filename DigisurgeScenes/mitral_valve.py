@@ -40,8 +40,11 @@ def createScene(root):
     'Sofa.Component.Mass',
     'Sofa.Component.ODESolver.Backward',
     'Sofa.Component.SolidMechanics.FEM.Elastic',
+    'Sofa.Component.SolidMechanics.Spring',
+    'Sofa.Component.MechanicalLoad',
     'Sofa.Component.StateContainer',
     'Sofa.Component.Topology.Container.Dynamic',
+    'Sofa.Component.Engine.Transform',
     'Sofa.Component.Engine.Select',
     'Sofa.Component.Visual',
     'Sofa.GL.Component.Rendering3D'
@@ -49,7 +52,7 @@ def createScene(root):
 
     root.addObject('DefaultAnimationLoop')
 
-    root.addObject('VisualStyle', displayFlags="hideCollisionModels hideVisualModels showForceFields")
+    root.addObject('VisualStyle', displayFlags="hideCollisionModels hideVisualModels showBehaviorModels showForceFields")
     root.addObject('CollisionPipeline', name="CollisionPipeline")
     root.addObject('BruteForceBroadPhase', name="BroadPhase")
     root.addObject('BVHNarrowPhase', name="NarrowPhase")
@@ -71,6 +74,30 @@ def createScene(root):
     heart.addObject('BoxROI', template="Vec3d", name="FixationAtriumBoxROI", box="-40.0 -15.0 -40.0 40.0 -10.0 40.0", drawBoxes="false")
     heart.addObject('FixedConstraint', name="FixedConstraintVentricule", indices="@FixationVentriculeBoxROI.indices")
     heart.addObject('FixedConstraint', name="FixedConstraintAtrium", indices="@FixationAtriumBoxROI.indices")
+    heart.addObject('SphereROI', template="Vec3d", name="PressureROI", centers="-1 0 2", radii="24", drawSphere="false")
+    heart.addObject('SurfacePressureForceField', name="SurfacePressureFF", pressure="10", pulseMode="false", mainDirection="0 1 0", triangleIndices="@PressureROI.triangleIndices")
+    heart.addObject('BoxROI', template="Vec3d", name="AnteriorROI", box="-10.0 -20.0 0.0 8.0 0.0 6.0", drawBoxes="true")
+    heart.addObject('BoxROI', template="Vec3d", name="PosteriorROI", box="-10.0 -20.0 8.0 8.0 0.0 14.0", drawBoxes="true")
+    
+    chordesAnterior = heart.addChild('ChordesAnterior')
+    chordesAnterior.addObject('PointSetTopologyContainer', name="ChordesAnteriorTopo", position="@../AnteriorROI.pointsInROI")
+    chordesAnterior.addObject('TransformEngine', name="TEAnteriorChordes", input_position="@ChordesAnteriorTopo.position", translation="0 -50 -20", scale="0 0 0")
+    chordesAnterior.addObject('PointSetGeometryAlgorithms')
+    chordesAnterior.addObject('MechanicalObject', name="ChordesAnteriorCenter", position="@TEAnteriorChordes.output_position")
+    chordesAnterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-1 -51 -21 1 -49 -19", drawBoxes="true")
+    chordesAnterior.addObject('FixedConstraint', name="FixedChordesAnterior", indices="@AllPointsROI.indices")
+    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", secondObjectPoints="@../AnteriorROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesAnteriorCenter", object2="@../dofs")
+
+
+
+    chordesPosterior = heart.addChild('ChordesPosterior')
+    chordesPosterior.addObject('PointSetTopologyContainer', name="ChordesPosteriorTopo", position="@../PosteriorROI.pointsInROI")
+    chordesPosterior.addObject('TransformEngine', name="TEPosteriorChordes", input_position="@ChordesPosteriorTopo.position", translation="0 -50 20", scale="0 0 0")
+    chordesPosterior.addObject('PointSetGeometryAlgorithms')    
+    chordesPosterior.addObject('MechanicalObject', name="ChordesPosteriorCenter", position="@TEPosteriorChordes.output_position")
+    chordesPosterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-1 -51 19 1 -49 21", drawBoxes="true")
+    chordesPosterior.addObject('FixedConstraint', name="FixedChordesPosterior", indices="@AllPointsROI.indices")  
+    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", secondObjectPoints="@../PosteriorROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesPosteriorCenter", object2="@../dofs")    
 
     visu = heart.addChild('Visu')
     visu.addObject('OglModel', name="VisualModel", src="@../../HeartSurface")
