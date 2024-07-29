@@ -56,12 +56,12 @@ def createScene(root):
     root.addObject('DefaultContactManager', name="CollisionResponse", response="PenalityContactForceField")
     root.addObject('DiscreteIntersection')
 
-    root.addObject('MeshOBJLoader', name="HeartSurface", filename="mesh/ValveMitral_Attached__sf.obj")
+    root.addObject('MeshOBJLoader', name="HeartSurface", filename="mesh/Digisurge/GenerateMesh/Surface/ValveMitral_Attached__sf.obj")
 
     heart = root.addChild('Heart')
     heart.addObject('EulerImplicitSolver', name="cg_odesolver", rayleighStiffness="0.1", rayleighMass="0.1")
     heart.addObject('CGLinearSolver', name="linear_solver", iterations="25", tolerance="1e-09", threshold="1e-09")
-    heart.addObject('MeshGmshLoader', name="meshLoader", filename="mesh/ValveMitral_Attached.msh")
+    heart.addObject('MeshGmshLoader', name="meshLoader", filename="mesh/Digisurge/GenerateMesh/Volume/ValveMitral_Attached.msh")
     heart.addObject('TetrahedronSetTopologyContainer', name="topo", src="@meshLoader")
     heart.addObject('MechanicalObject', name="dofs", src="@meshLoader")
     heart.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
