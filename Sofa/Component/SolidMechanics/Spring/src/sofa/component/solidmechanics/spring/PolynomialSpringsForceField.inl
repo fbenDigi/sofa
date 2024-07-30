@@ -50,6 +50,7 @@ PolynomialSpringsForceField<DataTypes>::PolynomialSpringsForceField(MechanicalSt
     , d_polynomialDegree(initData(&d_polynomialDegree, "polynomialDegree", "vector of values that show polynomials degrees"))
     , d_computeZeroLength(initData(&d_computeZeroLength, 1, "computeZeroLength", "flag to compute initial length for springs"))
     , d_zeroLength(initData(&d_zeroLength, "zeroLength", "initial length for springs"))
+    , d_zeroLengthScale(initData(&d_zeroLengthScale, (SReal)1.0, "zeroLengthScale", "Scale to the rest length"))
     , d_recomputeIndices(initData(&d_recomputeIndices, false, "recompute_indices", "Recompute indices (should be false for BBOX)"))
     , d_compressible(initData(&d_compressible, false, "compressible", "Indicates if object compresses without any reaction force"))
     , d_drawMode(initData(&d_drawMode, 0, "drawMode", "The way springs will be drawn:\n- 0: Line\n- 1:Cylinder\n- 2: Arrow"))
@@ -96,7 +97,7 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
         zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
-            zeroLength[index] = (p1[index] - p2[index]).norm();
+            zeroLength[index] = (p1[index] - p2[index]).norm() * d_zeroLengthScale.getValue();
             m_initialSpringLength[index] = (zeroLength.size() > 1) ? zeroLength[index] : zeroLength[0];
         }
     }
