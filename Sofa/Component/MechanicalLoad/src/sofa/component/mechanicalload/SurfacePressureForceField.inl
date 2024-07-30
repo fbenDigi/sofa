@@ -439,10 +439,11 @@ void SurfacePressureForceField<DataTypes>::addTriangleSurfacePressure(unsigned i
 
     if (d_mainDirection.getValue() != Deriv())
     {
-        Deriv n = ab.cross(ac);
-        n.normalize();
-        Real scal = n * d_mainDirection.getValue();
-        p *= fabs(scal);
+        //Deriv n = ab.cross(ac);
+        //n.normalize();
+        //Real scal = n * d_mainDirection.getValue();
+        //p *= fabs(scal);
+        p = d_mainDirection.getValue() * p.norm();
     }
 
     f[t[0]] += p;
