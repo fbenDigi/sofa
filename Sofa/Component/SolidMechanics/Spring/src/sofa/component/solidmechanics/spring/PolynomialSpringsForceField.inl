@@ -63,7 +63,7 @@ PolynomialSpringsForceField<DataTypes>::PolynomialSpringsForceField(MechanicalSt
 template<class DataTypes>
 void PolynomialSpringsForceField<DataTypes>::bwdInit()
 {
-    sofa::helper::ReadAccessor< Data<VecReal> > zeroLength = d_zeroLength;
+    sofa::helper::WriteAccessor< Data<VecReal> > zeroLength = d_zeroLength;
 
     this->Inherit::init();
 
@@ -91,8 +91,12 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
             m_computeSpringsZeroLength[index] = 1;
         }
     } else {
+        const VecCoord& p1 = this->mstate1->read(core::ConstVecCoordId::position())->getValue();
+        const VecCoord& p2 = this->mstate2->read(core::ConstVecCoordId::position())->getValue();
+        zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
+            zeroLength[index] = (p1[index] - p2[index]).norm();
             m_initialSpringLength[index] = (zeroLength.size() > 1) ? zeroLength[index] : zeroLength[0];
         }
     }
@@ -196,7 +200,7 @@ void PolynomialSpringsForceField<DataTypes>::addForce(const core::MechanicalPara
     msg_info() << "\n\nNew step:\n";
     if (d_polynomialDegree.getValue().size() != m_firstObjectIndices.size())
     {
-        msg_warning() << "WARNING : stiffness is not defined on each point, first stiffness is used";
+        //msg_warning() << "WARNING : stiffness is not defined on each point, first stiffness is used";
         for (unsigned int i = 0; i < m_firstObjectIndices.size(); i++)
         {
             const unsigned int firstIndex = m_firstObjectIndices[i];
