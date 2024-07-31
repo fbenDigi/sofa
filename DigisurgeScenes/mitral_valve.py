@@ -69,13 +69,13 @@ def createScene(root):
     heart.addObject('MechanicalObject', name="dofs", src="@meshLoader")
     heart.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
     heart.addObject('DiagonalMass', name="Mass", massDensity="1.0")
-    heart.addObject('TetrahedronFEMForceField', template="Vec3d", name="FEM", method="large", poissonRatio="0.3", youngModulus="10000", computeVonMisesStress="1", showVonMisesStressPerNodeColorMap="true")
+    heart.addObject('TetrahedronFEMForceField', template="Vec3d", name="FEM", method="large", poissonRatio="0.3", youngModulus="10000", computeVonMisesStress="1", showVonMisesStressPerNodeColorMap="true", showElementGapScale="0.0")
     heart.addObject('BoxROI', template="Vec3d", name="FixationVentriculeBoxROI", box="-40.0 8.0 -40.0 40.0 15.0 40.0", drawBoxes="false")
     heart.addObject('BoxROI', template="Vec3d", name="FixationAtriumBoxROI", box="-40.0 -15.0 -40.0 40.0 -10.0 40.0", drawBoxes="false")
     heart.addObject('FixedProjectiveConstraint', name="FixedConstraintVentricule", indices="@FixationVentriculeBoxROI.indices")
     heart.addObject('FixedProjectiveConstraint', name="FixedConstraintAtrium", indices="@FixationAtriumBoxROI.indices")
     heart.addObject('SphereROI', template="Vec3d", name="PressureROI", centers="-1 0 2", radii="24", drawSphere="false")
-    heart.addObject('SurfacePressureForceField', name="SurfacePressureFF", pressure="10", pulseMode="true", pressureSpeed="10", mainDirection="0 1 0", triangleIndices="@PressureROI.triangleIndices")
+    heart.addObject('SurfacePressureForceField', name="SurfacePressureFF", pressure="16", pulseMode="true", pressureSpeed="10", mainDirection="0 1 0", triangleIndices="@PressureROI.triangleIndices")
     heart.addObject('BoxROI', template="Vec3d", name="Anterior2ROI", box="-10.0 -20.0 0.0 8.0 0.0 6.0", drawBoxes="false")
     heart.addObject('BoxROI', template="Vec3d", name="Posterior2ROI", box="-10.0 -20.0 8.0 8.0 0.0 14.0", drawBoxes="false")
     heart.addObject('SphereROI', template="Vec3d", name="Anterior1ROI", centers="-11 -8 -5 -9 -8 -1", radii="5 5", drawSphere="false")
@@ -91,7 +91,7 @@ def createScene(root):
     chordesAnterior.addObject('MechanicalObject', name="ChordesAnteriorCenter", position="@TEAnteriorChordes.output_position")
     chordesAnterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesAnterior.addObject('FixedProjectiveConstraint', name="FixedChordesAnterior", indices="@AllPointsROI.indices")
-    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior2ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
+    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior2ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
 
     chordesPosterior = heart.addChild('ChordesPosterior2')
     chordesPosterior.addObject('PointSetTopologyContainer', name="ChordesPosteriorTopo", position="@../Posterior2ROI.pointsInROI")
@@ -100,7 +100,7 @@ def createScene(root):
     chordesPosterior.addObject('MechanicalObject', name="ChordesPosteriorCenter", position="@TEPosteriorChordes.output_position")
     chordesPosterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesPosterior.addObject('FixedProjectiveConstraint', name="FixedChordesPosterior", indices="@AllPointsROI.indices")  
-    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior2ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
+    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior2ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
 
 
     chordesAnterior = heart.addChild('ChordesAnterior1')
@@ -110,7 +110,7 @@ def createScene(root):
     chordesAnterior.addObject('MechanicalObject', name="ChordesAnteriorCenter", position="@TEAnteriorChordes.output_position")
     chordesAnterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesAnterior.addObject('FixedProjectiveConstraint', name="FixedChordesAnterior", indices="@AllPointsROI.indices")
-    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior1ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
+    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior1ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
 
     chordesPosterior = heart.addChild('ChordesPosterior1')
     chordesPosterior.addObject('PointSetTopologyContainer', name="ChordesPosteriorTopo", position="@../Posterior1ROI.pointsInROI")
@@ -119,7 +119,7 @@ def createScene(root):
     chordesPosterior.addObject('MechanicalObject', name="ChordesPosteriorCenter", position="@TEPosteriorChordes.output_position")
     chordesPosterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesPosterior.addObject('FixedProjectiveConstraint', name="FixedChordesPosterior", indices="@AllPointsROI.indices")  
-    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior1ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
+    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior1ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
 
 
     chordesAnterior = heart.addChild('ChordesAnterior3')
@@ -129,7 +129,7 @@ def createScene(root):
     chordesAnterior.addObject('MechanicalObject', name="ChordesAnteriorCenter", position="@TEAnteriorChordes.output_position")
     chordesAnterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesAnterior.addObject('FixedProjectiveConstraint', name="FixedChordesAnterior", indices="@AllPointsROI.indices")
-    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior3ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
+    chordesAnterior.addObject('PolynomialSpringsForceField', name="ChordesAnteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Anterior3ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesAnteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")
 
     chordesPosterior = heart.addChild('ChordesPosterior3')
     chordesPosterior.addObject('PointSetTopologyContainer', name="ChordesPosteriorTopo", position="@../Posterior3ROI.pointsInROI")
@@ -138,7 +138,7 @@ def createScene(root):
     chordesPosterior.addObject('MechanicalObject', name="ChordesPosteriorCenter", position="@TEPosteriorChordes.output_position")
     chordesPosterior.addObject('BoxROI', template="Vec3d", name="AllPointsROI", box="-200 -200 -200 200 200 200", drawBoxes="false")
     chordesPosterior.addObject('FixedProjectiveConstraint', name="FixedChordesPosterior", indices="@AllPointsROI.indices")  
-    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior3ROI.indices", polynomialStiffness="10000", polynomialDegree="2", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
+    chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior3ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
 
 
     visu = heart.addChild('Visu')
