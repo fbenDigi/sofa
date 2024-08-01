@@ -275,8 +275,8 @@ public:
     Data<type::vector<Real> > d_vonMisesPerNode; ///< von Mises Stress per node
     Data<type::vector<type::RGBAColor> > d_vonMisesStressColors; ///< Vector of colors describing the VonMises stress
 
-    Real m_minVonMisesPerNode;
-    Real m_maxVonMisesPerNode;
+    Data<Real> d_minVonMisesPerNode;
+    Data<Real> d_maxVonMisesPerNode;
 
     SOFA_ATTRIBUTE_DEPRECATED__RENAME_DATA_IN_SOLIDMECHANICS_FEM_ELASTIC()
     Data<std::string> _showStressColorMap;
