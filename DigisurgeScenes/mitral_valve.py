@@ -146,11 +146,11 @@ def createScene(root):
     chordesPosterior.addObject('PolynomialSpringsForceField', name="ChordesPosteriorSpringFF", firstObjectPoints="@AllPointsROI.indices", secondObjectPoints="@../Posterior3ROI.indices", polynomialStiffness="2000", polynomialDegree="1", object1="@ChordesPosteriorCenter", object2="@../dofs", computeZeroLength="2", zeroLengthScale="1.0")    
 
 
-    chordesPosterior = heart.addChild('Implant') 
-    # chordesPosterior.addObject('PolynomialSpringsForceField', name="ImplantTWP1SpringFF", firstObjectPoints="@../TrigonWestROI.indices", secondObjectPoints="@../AnchorP1ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
-    # chordesPosterior.addObject('PolynomialSpringsForceField', name="ImplantP1P2SpringFF", firstObjectPoints="@../AnchorP1ROI.indices", secondObjectPoints="@../AnchorP2ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
-    # chordesPosterior.addObject('PolynomialSpringsForceField', name="ImplantP2P3SpringFF", firstObjectPoints="@../AnchorP2ROI.indices", secondObjectPoints="@../AnchorP3ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
-    # chordesPosterior.addObject('PolynomialSpringsForceField', name="ImplantP3TESpringFF", firstObjectPoints="@../AnchorP3ROI.indices", secondObjectPoints="@../TrigonEastROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
+    Implant = heart.addChild('Implant') 
+    Implant.addObject('PolynomialSpringsForceField', name="ImplantTWP1SpringFF", firstObjectPoints="@../TrigonWestROI.indices", secondObjectPoints="@../AnchorP1ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
+    Implant.addObject('PolynomialSpringsForceField', name="ImplantP1P2SpringFF", firstObjectPoints="@../AnchorP1ROI.indices", secondObjectPoints="@../AnchorP2ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
+    Implant.addObject('PolynomialSpringsForceField', name="ImplantP2P3SpringFF", firstObjectPoints="@../AnchorP2ROI.indices", secondObjectPoints="@../AnchorP3ROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
+    Implant.addObject('PolynomialSpringsForceField', name="ImplantP3TESpringFF", firstObjectPoints="@../AnchorP3ROI.indices", secondObjectPoints="@../TrigonEastROI.indices", polynomialStiffness="1000000", polynomialDegree="1", object1="@../dofs", object2="@../dofs", computeZeroLength="2", zeroLengthScale="0.5")    
 
 
 
