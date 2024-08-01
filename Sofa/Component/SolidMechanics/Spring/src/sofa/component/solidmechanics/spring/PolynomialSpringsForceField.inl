@@ -97,7 +97,8 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
         zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
-            zeroLength[index] = (p1[index] - p2[index]).norm() * d_zeroLengthScale.getValue();
+            zeroLength[index] =
+                (p1[m_firstObjectIndices[index]] - p2[m_secondObjectIndices[index]]).norm() * d_zeroLengthScale.getValue();
             m_initialSpringLength[index] = (zeroLength.size() > 1) ? zeroLength[index] : zeroLength[0];
         }
     }
@@ -164,11 +165,12 @@ void PolynomialSpringsForceField<DataTypes>::recomputeIndices()
         }
     }
 
-    if (m_firstObjectIndices.size() > m_secondObjectIndices.size())
+    if (m_firstObjectIndices.size() != m_secondObjectIndices.size())
     {
-        msg_error() << "Error : the dimention of the source and the targeted points are different ";
-        m_firstObjectIndices.clear();
-        m_secondObjectIndices.clear();
+        //msg_error() << "Error : the dimention of the source and the targeted points are different ";
+        std::size_t minSize = std::min(m_firstObjectIndices.size(), m_secondObjectIndices.size());
+        m_firstObjectIndices.resize(minSize);
+        m_secondObjectIndices.resize(minSize);
     }
 }
 
@@ -347,8 +349,8 @@ void PolynomialSpringsForceField<DataTypes>::draw(const core::visual::VisualPara
     const VecCoord& p1 =this->mstate1->read(core::ConstVecCoordId::position())->getValue();
     const VecCoord& p2 =this->mstate2->read(core::ConstVecCoordId::position())->getValue();
 
-    const VecIndex& firstObjectIndices = d_firstObjectPoints.getValue();
-    const VecIndex& secondObjectIndices = d_secondObjectPoints.getValue();
+    const VecIndex& firstObjectIndices = m_firstObjectIndices;
+    const VecIndex& secondObjectIndices = m_secondObjectIndices;
 
     std::vector< type::Vec3 > points;
     for (unsigned int i = 0; i < firstObjectIndices.size(); i++)
