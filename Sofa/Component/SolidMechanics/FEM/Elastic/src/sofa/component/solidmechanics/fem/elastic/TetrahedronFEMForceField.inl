@@ -2040,6 +2040,7 @@ void TetrahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams*
             }
             vparams->drawTool()->drawPoints(pts, 10, nodeColors);
         }
+        vparams->drawTool()->writeOverlayText(0, 0, 20, sofa::type::RGBAColor::white(), (std::to_string(maxVMN)).c_str());
     }
 
 
