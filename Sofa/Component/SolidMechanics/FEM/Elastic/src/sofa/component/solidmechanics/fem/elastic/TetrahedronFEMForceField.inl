@@ -67,6 +67,8 @@ TetrahedronFEMForceField<DataTypes>::TetrahedronFEMForceField()
     , d_showVonMisesStressPerNodeColorMap(initData(&d_showVonMisesStressPerNodeColorMap,false,"showVonMisesStressPerNodeColorMap","draw elements showing vonMises stress interpolated in nodes"))
     , d_showVonMisesStressPerElement(initData(&d_showVonMisesStressPerElement, false, "showVonMisesStressPerElement", "draw triangles showing vonMises stress interpolated in elements"))
     , d_showElementGapScale(initData(&d_showElementGapScale, (Real)0.333, "showElementGapScale", "draw gap between elements (when showWireFrame is disabled) [0,1]: 0: no gap, 1: no element"))
+    , d_showRuptureNodes(initData(&d_showRuptureNodes, false, "showRuptureNodes", "draw points showing vonMises stress interpolated in nodes"))
+    , d_ruptureThreshold(initData(&d_ruptureThreshold, (Real)1000.0, "ruptureThreshold", "The Von Mises Stress Threshold Value where the rupture will happen"))
     , d_updateStiffness(initData(&d_updateStiffness, false, "updateStiffness", "udpate structures (precomputed in init) using stiffness parameters in each iteration (set listening=1)"))
 {
     data.initPtrData(this);
@@ -2039,6 +2041,22 @@ void TetrahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams*
                 nodeColors[nd] = evalColor(vMN[nd]);
             }
             vparams->drawTool()->drawPoints(pts, 10, nodeColors);
+        }
+        
+        if (d_showRuptureNodes.getValue())
+        {
+            // Draw nodes (if node option enabled)
+            std::vector<type::Vec3> pts;
+            pts.reserve(x.size());
+            Real ruptureThreshold = d_ruptureThreshold.getValue();
+            for (size_t nd = 0; nd < x.size(); nd++)
+            {
+                if (vMN[nd] > ruptureThreshold)
+                {
+                    pts.emplace_back(x[nd]);
+                }
+            }
+            vparams->drawTool()->drawSpheres(pts, 1, sofa::type::RGBAColor::red());
         }
         vparams->drawTool()->writeOverlayText(0, 0, 20, sofa::type::RGBAColor::white(), (std::to_string(maxVMN)).c_str());
     }

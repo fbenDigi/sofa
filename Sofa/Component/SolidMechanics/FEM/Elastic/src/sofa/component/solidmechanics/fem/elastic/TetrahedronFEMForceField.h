@@ -304,6 +304,9 @@ public:
 
     Data<Real> d_showElementGapScale; ///< draw gap between elements (when showWireFrame is disabled) [0,1]: 0: no gap, 1: no element
 
+    Data<bool> d_showRuptureNodes;  ///< draw points that reached a rupture stress threshold
+    Data<Real> d_ruptureThreshold;  ///< Von Mises Value where the rupture will happen
+
     Data<bool>  d_updateStiffness; ///< udpate structures (precomputed in init) using stiffness parameters in each iteration (set listening=1)
 
     using Inherit1::l_topology;
