@@ -159,10 +159,15 @@ def createScene(root):
     visu.addObject('OglModel', name="VisualModel", src="@../../HeartSurface")
     visu.addObject('BarycentricMapping', name="VisualMapping", input="@../dofs", output="@VisualModel")
 
-    surf = heart.addChild('Surf')
-    surf.addObject('MechanicalObject', name="spheres", position="@../../HeartSurface.position")
-    surf.addObject('SphereCollisionModel', name="CollisionModel", radius="1.0")
-    surf.addObject('BarycentricMapping', name="CollisionMapping", input="@../dofs", output="@spheres")
+    CollA2 = heart.addChild('CollisionA2')
+    CollA2.addObject('MechanicalObject', name="spheres")
+    CollA2.addObject('SphereCollisionModel', name="CollisionModelA2", radius="0.5")
+    CollA2.addObject('SubsetMapping', name="SubsetA2Mapping", indices="@../Anterior2ROI.indices", input="@../dofs", output="@spheres")
+
+    CollA2 = heart.addChild('CollisionP2')
+    CollA2.addObject('MechanicalObject', name="spheres")
+    CollA2.addObject('SphereCollisionModel', name="CollisionModelP2", radius="0.5")
+    CollA2.addObject('SubsetMapping', name="SubsetA2Mapping", indices="@../Posterior2ROI.indices", input="@../dofs", output="@spheres")        
 
     return root
 
