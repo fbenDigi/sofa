@@ -26,11 +26,13 @@
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/core/MechanicalParams.h>
 #include <sofa/core/behavior/MultiMatrixAccessor.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/type/RGBAColor.h>
 #include <vector>
 #include <set>
 #include <iostream>
+#include <algorithm>
 #include <sofa/core/behavior/BaseLocalForceFieldMatrix.h>
 
 
@@ -51,9 +53,13 @@ SurfacePressureForceField<DataTypes>::SurfacePressureForceField()
     , d_useTangentStiffness(initData(&d_useTangentStiffness, true, "useTangentStiffness", "Whether (non-symmetric) stiffness matrix should be used"))
     , d_defaultVolume(initData(&d_defaultVolume, (Real) - 1.0, "defaultVolume", "Default Volume"))
     , d_mainDirection(initData(&d_mainDirection, Deriv(), "mainDirection", "Main direction for pressure application"))
+    , d_piecewiseLinearPressure(initData(&d_piecewiseLinearPressure, "piecewiseLinearPressure", "when the pulse mode is active, the pressures in this vector should interpolate the current pressure"))
+    , d_piecewiseLinearTimestep(initData(&d_piecewiseLinearTimestep, "piecewiseLinearTimestep", "the timesteps where the pressure vector should be applied at the corresponding index"))
     , d_drawForceScale(initData(&d_drawForceScale, (Real)0, "drawForceScale", "DEBUG: scale used to render force vectors"))
     , l_topology(initLink("topology", "link to the topology container"))
     , state(INCREASE)
+    , m_time(0.0)
+    , m_invalidPiecewise(false)
     , m_topology(nullptr)
 {
 }
@@ -87,13 +93,49 @@ void SurfacePressureForceField<DataTypes>::init()
 
     state = d_pressure.getValue() > 0 ? INCREASE : DECREASE;
 
-    if (d_pulseMode.getValue() && (d_pressureSpeed.getValue() == 0.0))
+    if (d_pulseMode.getValue())
     {
-        msg_warning() << "Default pressure speed value has been set in SurfacePressureForceField";
-        d_pressureSpeed.setValue((Real)fabs(d_pressure.getValue()));
+        const VecReal& pressures = d_piecewiseLinearPressure.getValue();
+        const VecReal& timesteps = d_piecewiseLinearTimestep.getValue();
+        if (pressures.size() != timesteps.size())
+        {
+            msg_warning()<< "The pressures and the timesteps does not have the same size in SurfacePressureForceField";
+            m_invalidPiecewise = true;
+        }
+
+        if (!std::is_sorted(timesteps.begin(), timesteps.end()))
+        {
+            msg_warning() << "The timesteps are not sorted ascending order in SurfacePressureForceField";
+            m_invalidPiecewise = true;
+        }
+
+        if (timesteps.size() < 2)
+        {
+            msg_warning() << "The timesteps should have at least 2 elements in SurfacePressureForceField";
+            m_invalidPiecewise = true;
+        }
+        
+        if (d_pressureSpeed.getValue() == 0.0 && m_invalidPiecewise == true)
+        {
+            msg_warning()<< "Default pressure speed value has been set in SurfacePressureForceField";
+            d_pressureSpeed.setValue((Real)fabs(d_pressure.getValue()));
+        }
     }
 
     m_pulseModePressure = 0.0;
+    m_time = 0.0;
+}
+
+template <class DataTypes>
+inline void SurfacePressureForceField<DataTypes>::handleEvent(sofa::core::objectmodel::Event* event)
+{
+    this->core::behavior::ForceField<DataTypes>::handleEvent(event);
+
+    if (sofa::simulation::AnimateBeginEvent::checkEventType(event))
+    {
+        SReal dt = this->getContext()->getDt();
+        m_time += dt;
+    }
 }
 
 
@@ -428,7 +470,8 @@ void SurfacePressureForceField<DataTypes>::addTriangleSurfacePressure(unsigned i
         Deriv n = ab.cross(ac);
         n.normalize();
         Real scal = n * d_mainDirection.getValue();
-        p *= fabs(scal);
+        p *= scal < 0.0 ? 0.0 : 1.0;
+        //p = d_mainDirection.getValue() * p.norm();
     }
 
     f[t[0]] += p;
@@ -475,38 +518,85 @@ bool SurfacePressureForceField<DataTypes>::isInPressuredBox(const Coord& x) cons
 }
 
 template <class DataTypes>
+typename SurfacePressureForceField<DataTypes>::Real SurfacePressureForceField<DataTypes>::interpolatePiecewisePeriodicPressure() const
+{
+    const SurfacePressureForceField<DataTypes>::VecReal& pressures =
+        d_piecewiseLinearPressure.getValue();
+    const VecReal& timesteps = d_piecewiseLinearTimestep.getValue();
+    size_t n = timesteps.size();
+    if (n != pressures.size())
+    {
+        return 0.0;
+    }
+    if (n < 2)
+    {
+        return 0.0;
+    }
+
+    Real timestep_min = timesteps.front();
+    Real timestep_max = timesteps.back();
+    Real period = timestep_max - timestep_min;
+
+    Real current_time = m_time;
+
+    // Wrap current into the interval [timestep_min, timestep_max)
+    current_time = std::fmod(current_time - timestep_min, period);
+    if (current_time < 0) current_time += period;
+    current_time += timestep_min;
+
+    // Find interval [xs[i], xs[i+1]] for interpolation
+    auto it = std::lower_bound(timesteps.begin(), timesteps.end(), current_time);
+    size_t i = std::max(size_t(1), static_cast<size_t>(it - timesteps.begin())) - 1;
+
+    Real timestep0 = timesteps[i], timestep1 = timesteps[i + 1];
+    Real pressure0 = pressures[i], pressure1 = pressures[i + 1];
+
+    double t = (current_time - timestep0) / (timestep1 - timestep0);
+    return pressure0 + t * (pressure1 - pressure0);
+}
+
+template <class DataTypes>
 typename SurfacePressureForceField<DataTypes>::Real SurfacePressureForceField<DataTypes>::computePulseModePressure()
 {
     SReal dt = this->getContext()->getDt();
 
-    if (state == INCREASE)
+
+    if (!m_invalidPiecewise)
     {
-        Real pUpperBound = (d_pressure.getValue() > 0) ? d_pressure.getValue() : d_pressureLowerBound.getValue();
-
-        m_pulseModePressure += (Real)(d_pressureSpeed.getValue() * dt);
-
-        if (m_pulseModePressure >= pUpperBound)
-        {
-            m_pulseModePressure = pUpperBound;
-            state = DECREASE;
-        }
-
-        return m_pulseModePressure;
+        return interpolatePiecewisePeriodicPressure();
+        
     }
-
-    if (state == DECREASE)
+    else
     {
-        Real pLowerBound = (d_pressure.getValue() > 0) ? d_pressureLowerBound.getValue() : d_pressure.getValue();
-
-        m_pulseModePressure -= (Real)(d_pressureSpeed.getValue() * dt);
-
-        if (m_pulseModePressure <= pLowerBound)
+        if (state == INCREASE)
         {
-            m_pulseModePressure = pLowerBound;
-            state = INCREASE;
+            Real pUpperBound = (d_pressure.getValue() > 0) ? d_pressure.getValue() : d_pressureLowerBound.getValue();
+
+            m_pulseModePressure += (Real)(d_pressureSpeed.getValue() * dt);
+
+            if (m_pulseModePressure >= pUpperBound)
+            {
+                m_pulseModePressure = pUpperBound;
+                state = DECREASE;
+            }
+
+            return m_pulseModePressure;
         }
 
-        return m_pulseModePressure;
+        if (state == DECREASE)
+        {
+            Real pLowerBound = (d_pressure.getValue() > 0) ? d_pressureLowerBound.getValue() : d_pressure.getValue();
+
+            m_pulseModePressure -= (Real)(d_pressureSpeed.getValue() * dt);
+
+            if (m_pulseModePressure <= pLowerBound)
+            {
+                m_pulseModePressure = pLowerBound;
+                state = INCREASE;
+            }
+
+            return m_pulseModePressure;
+        }
     }
 
     return 0.0;

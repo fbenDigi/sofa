@@ -56,6 +56,7 @@ public:
     typedef type::vector<unsigned int> Vec3DerivIndices;
     typedef type::vector<Vec3DerivValues> VecVec3DerivValues;
     typedef type::vector<Vec3DerivIndices> VecVec3DerivIndices;
+    typedef type::vector<Real> VecReal;
 
     typedef core::objectmodel::Data<VecCoord> DataVecCoord;
     typedef core::objectmodel::Data<VecDeriv> DataVecDeriv;
@@ -81,6 +82,9 @@ public:
     Data<Real> d_defaultVolume; ///< Default Volume
     Data<Deriv> d_mainDirection; ///< Main direction for pressure application
 
+    Data<VecReal> d_piecewiseLinearPressure;  ///< when the pulse mode is active, the pressures in this vector should interpolate the current pressure
+    Data<VecReal> d_piecewiseLinearTimestep;  ///<  the timesteps where the pressure vector should be applied at the corresponding index
+
     Data<Real> d_drawForceScale; ///< DEBUG: scale used to render force vectors
 
 protected:
@@ -91,12 +95,15 @@ protected:
 
     State state; ///< In pulse mode, says wether pressure is increasing or decreasing.
     Real m_pulseModePressure; ///< Current pressure computed in pulse mode.
+    Real m_time;
+    bool m_invalidPiecewise;
 
     SurfacePressureForceField();
     virtual ~SurfacePressureForceField();
 
 public:
     void init() override;
+ virtual void handleEvent(sofa::core::objectmodel::Event*) override;
 
     void addForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v) override;
     void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& /* d_df */, const DataVecDeriv& /* d_dx */) override;
@@ -140,6 +147,8 @@ protected:
      * Pressure is computed according to the pressureSpeed attribute and the simulation time step.
      */
     Real computePulseModePressure();
+
+    Real interpolatePiecewisePeriodicPressure() const;
 
 
     /**

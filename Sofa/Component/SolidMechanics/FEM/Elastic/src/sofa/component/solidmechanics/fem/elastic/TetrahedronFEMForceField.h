@@ -223,8 +223,8 @@ public:
     Data<type::vector<Real> > d_vonMisesPerNode; ///< von Mises Stress per node
     Data<type::vector<type::RGBAColor> > d_vonMisesStressColors; ///< Vector of colors describing the VonMises stress
 
-    Real m_minVonMisesPerNode;
-    Real m_maxVonMisesPerNode;
+    Data<Real> d_minVonMisesPerNode;
+    Data<Real> d_maxVonMisesPerNode;
 
     Data<std::string> d_showStressColorMap; ///< Color map used to show stress values
     Data<float> d_showStressAlpha; ///< Alpha for vonMises visualisation

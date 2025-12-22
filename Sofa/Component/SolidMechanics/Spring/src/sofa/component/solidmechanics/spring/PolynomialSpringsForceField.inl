@@ -50,6 +50,7 @@ PolynomialSpringsForceField<DataTypes>::PolynomialSpringsForceField(MechanicalSt
     , d_polynomialDegree(initData(&d_polynomialDegree, "polynomialDegree", "vector of values that show polynomials degrees"))
     , d_computeZeroLength(initData(&d_computeZeroLength, 1, "computeZeroLength", "flag to compute initial length for springs"))
     , d_zeroLength(initData(&d_zeroLength, "zeroLength", "initial length for springs"))
+    , d_zeroLengthScale(initData(&d_zeroLengthScale, (SReal)1.0, "zeroLengthScale", "Scale to the rest length"))
     , d_recomputeIndices(initData(&d_recomputeIndices, false, "recompute_indices", "Recompute indices (should be false for BBOX)"))
     , d_compressible(initData(&d_compressible, false, "compressible", "Indicates if object compresses without any reaction force"))
     , d_drawMode(initData(&d_drawMode, 0, "drawMode", "The way springs will be drawn:\n- 0: Line\n- 1:Cylinder\n- 2: Arrow"))
@@ -63,7 +64,7 @@ PolynomialSpringsForceField<DataTypes>::PolynomialSpringsForceField(MechanicalSt
 template<class DataTypes>
 void PolynomialSpringsForceField<DataTypes>::bwdInit()
 {
-    sofa::helper::ReadAccessor< Data<VecReal> > zeroLength = d_zeroLength;
+    sofa::helper::WriteAccessor< Data<VecReal> > zeroLength = d_zeroLength;
 
     this->Inherit::init();
 
@@ -91,8 +92,13 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
             m_computeSpringsZeroLength[index] = 1;
         }
     } else {
+        const VecCoord& p1 = this->mstate1->read(core::ConstVecCoordId::position())->getValue();
+        const VecCoord& p2 = this->mstate2->read(core::ConstVecCoordId::position())->getValue();
+        zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
+            zeroLength[index] =
+                (p1[m_firstObjectIndices[index]] - p2[m_secondObjectIndices[index]]).norm() * d_zeroLengthScale.getValue();
             m_initialSpringLength[index] = (zeroLength.size() > 1) ? zeroLength[index] : zeroLength[0];
         }
     }
@@ -159,7 +165,7 @@ void PolynomialSpringsForceField<DataTypes>::recomputeIndices()
         }
     }
 
-    if (m_firstObjectIndices.size() > m_secondObjectIndices.size())
+    if (m_firstObjectIndices.size() != m_secondObjectIndices.size())
     {
         msg_error() << "Error : the dimension of the source and the targeted points are different ";
         m_firstObjectIndices.clear();
@@ -196,7 +202,7 @@ void PolynomialSpringsForceField<DataTypes>::addForce(const core::MechanicalPara
     msg_info() << "\n\nNew step:\n";
     if (d_polynomialDegree.getValue().size() != m_firstObjectIndices.size())
     {
-        msg_warning() << "WARNING : stiffness is not defined on each point, first stiffness is used";
+        //msg_warning() << "WARNING : stiffness is not defined on each point, first stiffness is used";
         for (unsigned int i = 0; i < m_firstObjectIndices.size(); i++)
         {
             const unsigned int firstIndex = m_firstObjectIndices[i];
@@ -342,8 +348,8 @@ void PolynomialSpringsForceField<DataTypes>::draw(const core::visual::VisualPara
     const VecCoord& p1 =this->mstate1->read(core::vec_id::read_access::position)->getValue();
     const VecCoord& p2 =this->mstate2->read(core::vec_id::read_access::position)->getValue();
 
-    const VecIndex& firstObjectIndices = d_firstObjectPoints.getValue();
-    const VecIndex& secondObjectIndices = d_secondObjectPoints.getValue();
+    const VecIndex& firstObjectIndices = m_firstObjectIndices;
+    const VecIndex& secondObjectIndices = m_secondObjectIndices;
 
     std::vector< type::Vec3 > points;
     for (unsigned int i = 0; i < firstObjectIndices.size(); i++)

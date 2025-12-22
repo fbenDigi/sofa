@@ -71,6 +71,7 @@ public:
 
     Data<int> d_computeZeroLength; ///< flag to compute initial length for springs
     Data<VecReal> d_zeroLength; ///< initial length for springs
+    Data<Real> d_zeroLengthScale; ///< scale the initial lenghth of the springs
     Data<bool> d_recomputeIndices; ///< Recompute indices (should be false for BBOX)
 
     Data <bool> d_compressible; ///< Indicates if object compresses without any reaction force
