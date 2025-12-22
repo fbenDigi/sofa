@@ -22,7 +22,7 @@ sofa_add_subdirectory(plugin DiffusionSolver DiffusionSolver) # Depends on CImgP
 sofa_add_subdirectory(plugin image image) # Depends on CImgPlugin, DiffusionSolver, MultiThreading (soft)
 sofa_add_subdirectory(plugin SofaNewmat SofaNewmat)
 
-sofa_add_subdirectory(directory SofaPython3 SofaPython3 EXTERNAL GIT_REF master)
+sofa_add_subdirectory(directory SofaPython3 SofaPython3 EXTERNAL GIT_REF DigisurgeMaster)
 sofa_add_subdirectory(plugin CGALPlugin CGALPlugin EXTERNAL GIT_REF master)     # Depends on image
 sofa_add_subdirectory(plugin Registration Registration EXTERNAL GIT_REF master) # Depends on image, SofaPython, SofaGui and SofaDistanceGrid
 sofa_add_subdirectory(plugin BulletCollisionDetection BulletCollisionDetection) # Depends on Compliant and LMConstraint

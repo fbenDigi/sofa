@@ -55,16 +55,20 @@ TetrahedronFEMForceField<DataTypes>::TetrahedronFEMForceField()
     , d_gatherPt(initData(&d_gatherPt, "gatherPt", "number of dof accumulated per threads during the gather operation (Only use in GPU version)"))
     , d_gatherBsize(initData(&d_gatherBsize, "gatherBsize", "number of dof accumulated per threads during the gather operation (Only use in GPU version)"))
     , d_drawHeterogeneousTetra(initData(&d_drawHeterogeneousTetra, false, "drawHeterogeneousTetra", "Draw Heterogeneous Tetra in different color"))
-    , d_computeVonMisesStress(initData(&d_computeVonMisesStress, 0, "computeVonMisesStress", "compute and display von Mises stress: 0: no computations, 1: using corotational strain, 2: using full Green strain. Set listening=1"))
+    , d_computeVonMisesStress(initData(&d_computeVonMisesStress, 0, "computeVonMisesStress", "compute and display von Mises stress: 0: no computations, 1: using corotational strad_maxVonMisesPerNodein, 2: using full Green strain. Set listening=1"))
     , d_vonMisesPerElement(initData(&d_vonMisesPerElement, "vonMisesPerElement", "von Mises Stress per element"))
     , d_vonMisesPerNode(initData(&d_vonMisesPerNode, "vonMisesPerNode", "von Mises Stress per node"))
     , d_vonMisesStressColors(initData(&d_vonMisesStressColors, "vonMisesStressColors", "Vector of colors describing the VonMises stress"))
+    , d_minVonMisesPerNode(initData(&d_minVonMisesPerNode, 0.0, "minVonMisesPerNode", "Min of the VonMises stress per element", true, true))
+    , d_maxVonMisesPerNode(initData(&d_maxVonMisesPerNode, 0.0, "maxVonMisesPerNode", "Vector of colors describing the VonMises stress", true, true))
     , d_showStressColorMap(initData(&d_showStressColorMap, std::string("Blue to Red"), "showStressColorMap", "Color map used to show stress values"))
     , d_showStressAlpha(initData(&d_showStressAlpha, 1.0f, "showStressAlpha", "Alpha for vonMises visualisation"))
     , d_showVonMisesStressPerNode(initData(&d_showVonMisesStressPerNode, false, "showVonMisesStressPerNode", "draw points showing vonMises stress interpolated in nodes"))
     , d_showVonMisesStressPerNodeColorMap(initData(&d_showVonMisesStressPerNodeColorMap,false,"showVonMisesStressPerNodeColorMap","draw elements showing vonMises stress interpolated in nodes"))
     , d_showVonMisesStressPerElement(initData(&d_showVonMisesStressPerElement, false, "showVonMisesStressPerElement", "draw triangles showing vonMises stress interpolated in elements"))
     , d_showElementGapScale(initData(&d_showElementGapScale, (Real)0.333, "showElementGapScale", "draw gap between elements (when showWireFrame is disabled) [0,1]: 0: no gap, 1: no element"))
+    , d_showRuptureNodes(initData(&d_showRuptureNodes, false, "showRuptureNodes", "draw points showing vonMises stress interpolated in nodes"))
+    , d_ruptureThreshold(initData(&d_ruptureThreshold, (Real)1000.0, "ruptureThreshold", "The Von Mises Stress Threshold Value where the rupture will happen"))
     , d_updateStiffness(initData(&d_updateStiffness, false, "updateStiffness", "udpate structures (precomputed in init) using stiffness parameters in each iteration (set listening=1)"))
 {
     data.initPtrData(this);
@@ -1924,7 +1928,7 @@ void TetrahedronFEMForceField<DataTypes>::drawTrianglesFromRangeOfTetrahedra(
             else if(d_showVonMisesStressPerNodeColorMap.getValue())
             {
                 helper::ReadAccessor<Data<type::vector<Real> > > vMN =  d_vonMisesPerNode;
-                helper::ColorMap::evaluator<Real> evalColor = m_VonMisesColorMap->getEvaluator(m_minVonMisesPerNode, m_maxVonMisesPerNode);
+                helper::ColorMap::evaluator<Real> evalColor = m_VonMisesColorMap->getEvaluator(d_minVonMisesPerNode.getValue(), d_maxVonMisesPerNode.getValue());
                 color[0] = evalColor(vMN[(*it)[0]]);
                 color[1] = evalColor(vMN[(*it)[1]]);
                 color[2] = evalColor(vMN[(*it)[2]]);
@@ -2023,8 +2027,8 @@ void TetrahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams*
         maxVM *= d_showStressAlpha.getValue();
         maxVMN *= d_showStressAlpha.getValue();
 
-        m_minVonMisesPerNode = minVMN;
-        m_maxVonMisesPerNode = maxVMN;
+        d_minVonMisesPerNode.setValue(minVMN);
+        d_maxVonMisesPerNode.setValue(maxVMN);
 
         if (d_showVonMisesStressPerNode.getValue())
         {
@@ -2038,6 +2042,23 @@ void TetrahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams*
             }
             vparams->drawTool()->drawPoints(pts, 10, nodeColors);
         }
+        
+        if (d_showRuptureNodes.getValue())
+        {
+            // Draw nodes (if node option enabled)
+            std::vector<type::Vec3> pts;
+            pts.reserve(x.size());
+            Real ruptureThreshold = d_ruptureThreshold.getValue();
+            for (size_t nd = 0; nd < x.size(); nd++)
+            {
+                if (vMN[nd] > ruptureThreshold)
+                {
+                    pts.emplace_back(x[nd]);
+                }
+            }
+            vparams->drawTool()->drawSpheres(pts, 1, sofa::type::RGBAColor::red());
+        }
+        vparams->drawTool()->writeOverlayText(0, 0, 20, sofa::type::RGBAColor::white(), (std::to_string(maxVMN)).c_str());
     }
 
 

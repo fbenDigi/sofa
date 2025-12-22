@@ -275,8 +275,8 @@ public:
     Data<type::vector<Real> > d_vonMisesPerNode; ///< von Mises Stress per node
     Data<type::vector<type::RGBAColor> > d_vonMisesStressColors; ///< Vector of colors describing the VonMises stress
 
-    Real m_minVonMisesPerNode;
-    Real m_maxVonMisesPerNode;
+    Data<Real> d_minVonMisesPerNode;
+    Data<Real> d_maxVonMisesPerNode;
 
     SOFA_ATTRIBUTE_DEPRECATED__RENAME_DATA_IN_SOLIDMECHANICS_FEM_ELASTIC()
     Data<std::string> _showStressColorMap;
@@ -303,6 +303,9 @@ public:
     Data<bool> d_showVonMisesStressPerElement; ///< draw triangles showing vonMises stress interpolated in elements
 
     Data<Real> d_showElementGapScale; ///< draw gap between elements (when showWireFrame is disabled) [0,1]: 0: no gap, 1: no element
+
+    Data<bool> d_showRuptureNodes;  ///< draw points that reached a rupture stress threshold
+    Data<Real> d_ruptureThreshold;  ///< Von Mises Value where the rupture will happen
 
     Data<bool>  d_updateStiffness; ///< udpate structures (precomputed in init) using stiffness parameters in each iteration (set listening=1)
 
