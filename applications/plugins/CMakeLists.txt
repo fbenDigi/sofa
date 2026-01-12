@@ -22,7 +22,7 @@ sofa_add_subdirectory(plugin DiffusionSolver DiffusionSolver) # Depends on CImgP
 sofa_add_subdirectory(plugin image image) # Depends on CImgPlugin, DiffusionSolver, MultiThreading (soft)
 sofa_add_subdirectory(plugin SofaNewmat SofaNewmat)
 
-sofa_add_subdirectory(directory SofaPython3 SofaPython3 EXTERNAL GIT_REF DigisurgeMaster)
+sofa_add_subdirectory(directory SofaPython3 SofaPython3 EXTERNAL GIT_REF DigiSurge_r26.01)
 sofa_add_subdirectory(plugin CGALPlugin CGALPlugin EXTERNAL GIT_REF master)     # Depends on image
 sofa_add_subdirectory(plugin Registration Registration EXTERNAL GIT_REF master) # Depends on image, SofaPython, SofaGui and SofaDistanceGrid
 sofa_add_subdirectory(plugin BulletCollisionDetection BulletCollisionDetection) # Depends on Compliant and LMConstraint
@@ -45,7 +45,7 @@ sofa_add_subdirectory(plugin SofaAssimp SofaAssimp) # ColladaSceneLoader Depends
 sofa_add_subdirectory(plugin SofaMatrix SofaMatrix ON) # Depends on image, CImgPlugin
 sofa_add_subdirectory(plugin BeamAdapter BeamAdapter EXTERNAL GIT_REF master)
 sofa_add_subdirectory(plugin STLIB STLIB EXTERNAL GIT_REF master)
-sofa_add_subdirectory(plugin SoftRobots SoftRobots EXTERNAL GIT_REF DigisurgeMaster)
+sofa_add_subdirectory(plugin SoftRobots SoftRobots EXTERNAL GIT_REF DigiSurge_r26.01)
 sofa_add_subdirectory(plugin CollisionAlgorithm CollisionAlgorithm EXTERNAL GIT_REF master)
 sofa_add_subdirectory(plugin ConstraintGeometry ConstraintGeometry EXTERNAL GIT_REF master)
 sofa_add_subdirectory(plugin ShapeMatchingPlugin ShapeMatchingPlugin EXTERNAL GIT_REF master)

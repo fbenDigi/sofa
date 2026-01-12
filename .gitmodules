@@ -1,4 +1,4 @@
 [submodule "applications/plugins/DigisurgePlugin"]
 	path = applications/plugins/DigisurgePlugin
 	url = git@github.com:Digisurge/SofaPlugin.git
-	branch = main
+	branch = DigiSurge_r26.01
