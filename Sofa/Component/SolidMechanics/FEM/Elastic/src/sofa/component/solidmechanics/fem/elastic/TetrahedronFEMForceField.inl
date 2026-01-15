@@ -1878,21 +1878,6 @@ void TetrahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams*
             vparams->drawTool()->drawPoints(pts, 10, nodeColors);
         }
         
-        if (d_showRuptureNodes.getValue())
-        {
-            // Draw nodes (if node option enabled)
-            std::vector<type::Vec3> pts;
-            pts.reserve(x.size());
-            Real ruptureThreshold = d_ruptureThreshold.getValue();
-            for (size_t nd = 0; nd < x.size(); nd++)
-            {
-                if (vMN[nd] > ruptureThreshold)
-                {
-                    pts.emplace_back(x[nd]);
-                }
-            }
-            vparams->drawTool()->drawSpheres(pts, 1, sofa::type::RGBAColor::red());
-        }
         vparams->drawTool()->writeOverlayText(0, 0, 20, sofa::type::RGBAColor::white(), (std::to_string(maxVMN)).c_str());
     }
 

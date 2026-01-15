@@ -92,8 +92,8 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
             m_computeSpringsZeroLength[index] = 1;
         }
     } else {
-        const VecCoord& p1 = this->mstate1->read(core::ConstVecCoordId::position())->getValue();
-        const VecCoord& p2 = this->mstate2->read(core::ConstVecCoordId::position())->getValue();
+        const VecCoord& p1 = this->mstate1->read(core::vec_id::read_access::position)->getValue();
+        const VecCoord& p2 = this->mstate2->read(core::vec_id::read_access::position)->getValue();
         zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
