@@ -167,9 +167,10 @@ void PolynomialSpringsForceField<DataTypes>::recomputeIndices()
 
     if (m_firstObjectIndices.size() != m_secondObjectIndices.size())
     {
-        msg_error() << "Error : the dimension of the source and the targeted points are different ";
-        m_firstObjectIndices.clear();
-        m_secondObjectIndices.clear();
+        msg_warning() << "Warning : the dimension of the source and the targeted points are different, the n first matching size are used ";
+        auto minSize = std::min(m_firstObjectIndices.size(), m_secondObjectIndices.size());
+        m_firstObjectIndices.resize(minSize);
+        m_secondObjectIndices.resize(minSize);
     }
 }
 
