@@ -2,3 +2,7 @@
 	path = applications/plugins/DigisurgePlugin
 	url = git@github.com:Digisurge/SofaPlugin.git
 	branch = main
+[submodule "applications/plugins/EpioneSofaPlugin"]
+	path = applications/plugins/EpioneSofaPlugin
+	url = git@github.com:Digisurge/EpioneSofaPlugin.git
+	branch = main
