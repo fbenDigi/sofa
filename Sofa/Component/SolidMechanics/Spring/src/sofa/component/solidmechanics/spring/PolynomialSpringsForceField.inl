@@ -97,9 +97,10 @@ void PolynomialSpringsForceField<DataTypes>::bwdInit()
         zeroLength.resize(m_computeSpringsZeroLength.size());
         for (size_t index = 0; index < m_computeSpringsZeroLength.size(); index++) {
             m_computeSpringsZeroLength[index] = 0;
-            zeroLength[index] =
-                (p1[m_firstObjectIndices[index]] - p2[m_secondObjectIndices[index]]).norm() * d_zeroLengthScale.getValue();
-            m_initialSpringLength[index] = (zeroLength.size() > 1) ? zeroLength[index] : zeroLength[0];
+            // Store base length without scale - scale will be applied dynamically in addForce()
+            Real baseLength = (p1[m_firstObjectIndices[index]] - p2[m_secondObjectIndices[index]]).norm();
+            zeroLength[index] = baseLength * d_zeroLengthScale.getValue();
+            m_initialSpringLength[index] = (zeroLength.size() > 1) ? baseLength : baseLength;
         }
     }
 
@@ -199,6 +200,9 @@ void PolynomialSpringsForceField<DataTypes>::addForce(const core::MechanicalPara
     }
 
     Real compressionValue = d_compressible.getValue() ? -1.0 : 0.0;
+    
+    // Read current zeroLengthScale to apply dynamically (for computeZeroLength != 1)
+    Real currentScale = d_zeroLengthScale.getValue();
 
     msg_info() << "\n\nNew step:\n";
     if (d_polynomialDegree.getValue().size() != m_firstObjectIndices.size())
@@ -224,9 +228,13 @@ void PolynomialSpringsForceField<DataTypes>::addForce(const core::MechanicalPara
             m_weightedCoordinateDifference[i] = m_weightedCoordinateDifference[i] / m_springLength[i];
             msg_info() << "Weighted coordinate difference: " << m_weightedCoordinateDifference[i];
 
-            m_strainValue[i] = std::fabs(m_springLength[i] - m_initialSpringLength[i]) / m_initialSpringLength[i];
+            // Apply scale dynamically if computeZeroLength != 1 (base length stored, scale applied here)
+            Real effectiveInitialLength = (d_computeZeroLength.getValue() != 1) ? 
+                                         (m_initialSpringLength[i] * currentScale) : 
+                                         m_initialSpringLength[i];
+            m_strainValue[i] = std::fabs(m_springLength[i] - effectiveInitialLength) / effectiveInitialLength;
             double forceValue = PolynomialValue(0, m_strainValue[i]);
-            m_strainSign[i] = m_springLength[i] - m_initialSpringLength[i] >= 0 ? 1.0 : compressionValue;
+            m_strainSign[i] = m_springLength[i] - effectiveInitialLength >= 0 ? 1.0 : compressionValue;
             msg_info() << "Strain sign: " << m_strainSign[i];
             msg_info() << "Strain value: " << m_strainValue[i];
             msg_info() << "Force value: " << forceValue;
@@ -257,9 +265,13 @@ void PolynomialSpringsForceField<DataTypes>::addForce(const core::MechanicalPara
             }
             m_weightedCoordinateDifference[i] = m_weightedCoordinateDifference[i] / m_springLength[i];
 
-            m_strainValue[i] = std::fabs(m_springLength[i] - m_initialSpringLength[i]) / m_initialSpringLength[i];
+            // Apply scale dynamically if computeZeroLength != 1 (base length stored, scale applied here)
+            Real effectiveInitialLength = (d_computeZeroLength.getValue() != 1) ? 
+                                         (m_initialSpringLength[i] * currentScale) : 
+                                         m_initialSpringLength[i];
+            m_strainValue[i] = std::fabs(m_springLength[i] - effectiveInitialLength) / effectiveInitialLength;
             double forceValue = PolynomialValue(i, m_strainValue[i]);
-            m_strainSign[i] = m_springLength[i] - m_initialSpringLength[i] >= 0 ? 1.0 : compressionValue;
+            m_strainSign[i] = m_springLength[i] - effectiveInitialLength >= 0 ? 1.0 : compressionValue;
             msg_info() << "Strain sign: " << m_strainSign[i];
             msg_info() << "Strain value: " << m_strainValue[i];
             msg_info() << "Force value: " << forceValue;
@@ -289,7 +301,12 @@ void PolynomialSpringsForceField<DataTypes>::ComputeJacobian(unsigned int stiffn
     double polynomialForceRes = PolynomialValue(stiffnessIndex, m_strainValue[springIndex]) / m_springLength[springIndex];
     msg_info() << "PolynomialForceRes: " << polynomialForceRes;
 
-    double polynomialDerivativeRes = PolynomialDerivativeValue(stiffnessIndex, m_strainValue[springIndex]) / m_initialSpringLength[springIndex];
+    // Apply scale dynamically if computeZeroLength != 1 (base length stored, scale applied here)
+    Real currentScale = d_zeroLengthScale.getValue();
+    Real effectiveInitialLength = (d_computeZeroLength.getValue() != 1) ? 
+                                 (m_initialSpringLength[springIndex] * currentScale) : 
+                                 m_initialSpringLength[springIndex];
+    double polynomialDerivativeRes = PolynomialDerivativeValue(stiffnessIndex, m_strainValue[springIndex]) / effectiveInitialLength;
     msg_info() << "PolynomialDerivativeRes: " << polynomialDerivativeRes;
 
     // compute data for Jacobian matrix
